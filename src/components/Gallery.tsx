@@ -59,17 +59,19 @@ function SortableItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="relative overflow-hidden rounded-sm bg-neutral-900/30 border border-white/[0.03] hover:border-white/10 transition-colors duration-500 group"
+      className={`relative overflow-hidden rounded-sm bg-neutral-900/30 border border-white/[0.03] hover:border-white/10 transition-colors duration-500 group ${
+        resource.width > resource.height ? 'sm:col-span-2' : ''
+      }`}
     >
       {/* Action Bar */}
-      <div className="absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-start justify-between p-2.5">
+      <div className="absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-black/60 to-transparent opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-start justify-between p-2.5">
         <div className="flex gap-2">
           <div 
             {...attributes} 
             {...listeners}
-            className="p-1.5 bg-black/40 rounded-full text-white/50 backdrop-blur-md border border-white/10 cursor-grab active:cursor-grabbing"
+            className="p-2.5 bg-black/60 rounded-full text-white backdrop-blur-md border border-white/20 touch-none"
           >
-            <GripVertical className="w-3 h-3" />
+            <GripVertical className="w-4 h-4" />
           </div>
         </div>
         <div className="flex gap-2">
@@ -130,7 +132,7 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // Avoid accidental drags when clicking
+        distance: 5, // Micșorăm distanța pentru a fi mai receptiv pe mobil
       },
     }),
     useSensor(KeyboardSensor, {
