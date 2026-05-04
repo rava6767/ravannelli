@@ -18,6 +18,9 @@ export interface CloudinaryResource {
   height: number;
   url: string;
   secure_url: string;
+  context?: {
+    order?: string;
+  };
 }
 
 export async function getResources() {
