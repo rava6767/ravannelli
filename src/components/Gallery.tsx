@@ -59,30 +59,31 @@ function SortableItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative overflow-hidden rounded-sm bg-neutral-900/30 border border-white/[0.03] hover:border-white/10 transition-colors duration-500 group ${
+      {...attributes}
+      {...listeners}
+      className={`relative overflow-hidden rounded-sm bg-neutral-900/30 border border-white/[0.03] hover:border-white/10 transition-colors duration-500 group touch-none ${
         resource.width > resource.height ? 'sm:col-span-2' : ''
       }`}
     >
-      {/* Action Bar */}
-      <div className="absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-black/60 to-transparent opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-start justify-between p-2.5">
-        <div className="flex gap-2">
-          <div 
-            {...attributes} 
-            {...listeners}
-            className="p-2.5 bg-black/60 rounded-full text-white backdrop-blur-md border border-white/20 touch-none"
-          >
-            <GripVertical className="w-4 h-4" />
-          </div>
-        </div>
+      {/* Action Bar - Acum apare DOAR la hover pe desktop, pe mobil e ascuns implicit */}
+      <div className="absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-start justify-end p-2.5">
         <div className="flex gap-2">
           <button 
-            onClick={() => onDownload(resource.secure_url, `${resource.public_id}.${resource.format}`)}
+            onPointerDown={(e) => e.stopPropagation()} // Prevenim drag-ul când apăsăm pe butoane
+            onClick={(e) => {
+              e.stopPropagation();
+              onDownload(resource.secure_url, `${resource.public_id}.${resource.format}`);
+            }}
             className="p-1.5 bg-black/40 hover:bg-black/80 rounded-full text-white/70 hover:text-white backdrop-blur-md border border-white/10 transition-all"
           >
             <Download className="w-3.5 h-3.5" />
           </button>
           <button 
-            onClick={() => onDelete(resource.public_id)}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(resource.public_id);
+            }}
             className="p-1.5 bg-black/40 hover:bg-red-900/60 rounded-full text-white/70 hover:text-white backdrop-blur-md border border-white/10 transition-all"
           >
             <X className="w-3.5 h-3.5" />
@@ -92,7 +93,10 @@ function SortableItem({
 
       <div 
         className="relative cursor-pointer aspect-[3/4] sm:aspect-auto"
-        onClick={() => resource.resource_type === 'image' && onSelect(resource.secure_url)}
+        onClick={(e) => {
+          // Dacă este un click scurt (nu un drag), deschidem imaginea
+          if (resource.resource_type === 'image') onSelect(resource.secure_url);
+        }}
       >
         {resource.resource_type === 'image' ? (
           <CldImage
@@ -132,7 +136,8 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5, // Micșorăm distanța pentru a fi mai receptiv pe mobil
+        delay: 250, // Trebuie să ții apăsat 250ms pentru a începe mutarea pe mobil
+        tolerance: 5, // Toleranță mică pentru mișcare înainte de activare
       },
     }),
     useSensor(KeyboardSensor, {
