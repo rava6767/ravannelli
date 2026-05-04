@@ -14,6 +14,8 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  TouchSensor,
+  MouseSensor,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -54,20 +56,17 @@ function SortableItem({
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 50 : 1,
-    opacity: isDragging ? 0.6 : 1,
-    scale: isDragging ? 1.05 : 1,
+    opacity: isDragging ? 0.5 : 1,
+    scale: isDragging ? 1.02 : 1,
   };
 
-  // Logică pentru un aspect "intercalat" (mosaic)
-  // Unele poze vor fi mai mari, altele mai înalte, creând un ritm vizual
-  const isLarge = index % 7 === 0; // Una din 7 poze este mare (2x2)
-  const isWide = !isLarge && resource.width > resource.height && index % 3 === 0;
-  const isTall = !isLarge && !isWide && resource.height > resource.width && index % 4 === 0;
-
+  // Logică pentru un aspect "intercalat" fără a tăia pozele (Masonry-ish în Grid)
+  const isWide = resource.width > resource.height * 1.2;
+  const isTall = resource.height > resource.width * 1.2;
+  
   const gridClasses = `
-    relative overflow-hidden rounded-sm bg-neutral-900/30 border border-white/[0.03] 
+    relative overflow-hidden rounded-sm bg-neutral-900/20 border border-white/[0.03] 
     hover:border-white/10 transition-all duration-500 group
-    ${isLarge ? 'sm:col-span-2 sm:row-span-2' : ''}
     ${isWide ? 'sm:col-span-2' : ''}
     ${isTall ? 'sm:row-span-2' : ''}
   `;
@@ -76,42 +75,36 @@ function SortableItem({
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
       className={gridClasses}
     >
-      {/* Action Bar - Acum apare DOAR la hover pe desktop, pe mobil e ascuns implicit */}
-      <div className="absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-start justify-end p-2.5">
-        <div className="flex gap-2">
-          <button 
-            onPointerDown={(e) => e.stopPropagation()} // Prevenim drag-ul când apăsăm pe butoane
-            onClick={(e) => {
-              e.stopPropagation();
-              onDownload(resource.secure_url, `${resource.public_id}.${resource.format}`);
-            }}
-            className="p-1.5 bg-black/40 hover:bg-black/80 rounded-full text-white/70 hover:text-white backdrop-blur-md border border-white/10 transition-all"
-          >
-            <Download className="w-3.5 h-3.5" />
-          </button>
-          <button 
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(resource.public_id);
-            }}
-            className="p-1.5 bg-black/40 hover:bg-red-900/60 rounded-full text-white/70 hover:text-white backdrop-blur-md border border-white/10 transition-all"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
+      {/* Drag Handle - Mai vizibil pentru feedback */}
+      <div 
+        {...attributes} 
+        {...listeners}
+        className="absolute top-2 left-2 z-30 p-2 bg-black/40 rounded-full text-white/50 backdrop-blur-md border border-white/10 sm:opacity-0 group-hover:opacity-100 transition-opacity touch-none"
+      >
+        <GripVertical className="w-4 h-4" />
+      </div>
+
+      {/* Action Buttons */}
+      <div className="absolute top-2 right-2 z-20 flex gap-2 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+        <button 
+          onClick={(e) => { e.stopPropagation(); onDownload(resource.secure_url, `${resource.public_id}.${resource.format}`); }}
+          className="p-2 bg-black/40 hover:bg-black/80 rounded-full text-white/70 backdrop-blur-md border border-white/10"
+        >
+          <Download className="w-3.5 h-3.5" />
+        </button>
+        <button 
+          onClick={(e) => { e.stopPropagation(); onDelete(resource.public_id); }}
+          className="p-2 bg-black/40 hover:bg-red-900/60 rounded-full text-white/70 backdrop-blur-md border border-white/10"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
       </div>
 
       <div 
         className="relative cursor-pointer w-full h-full"
-        onClick={(e) => {
-          // Dacă este un click scurt (nu un drag), deschidem imaginea
-          if (resource.resource_type === 'image') onSelect(resource.secure_url);
-        }}
+        onClick={() => resource.resource_type === 'image' && onSelect(resource.secure_url)}
       >
         {resource.resource_type === 'image' ? (
           <CldImage
@@ -119,22 +112,13 @@ function SortableItem({
             height={resource.height}
             src={resource.public_id}
             alt="Gallery"
-            className="w-full h-full object-cover transition-all duration-1000 grayscale-[0.2] group-hover:grayscale-0 group-hover:scale-[1.03]"
+            className="w-full h-full object-cover grayscale-[0.1] group-hover:grayscale-0 transition-all duration-700"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
           <div className="relative w-full h-full bg-black/40 flex items-center justify-center overflow-hidden">
-             <video 
-              src={resource.secure_url} 
-              className="w-full h-full object-cover"
-              muted
-              loop
-              onMouseOver={(e) => e.currentTarget.play()}
-              onMouseOut={(e) => e.currentTarget.pause()}
-            />
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-              <Play className="w-4 h-4 text-white fill-current" />
-            </div>
+             <video src={resource.secure_url} className="w-full h-full object-cover" muted loop onMouseOver={(e) => e.currentTarget.play()} onMouseOut={(e) => e.currentTarget.pause()} />
+             <Play className="absolute w-5 h-5 text-white/50 fill-current" />
           </div>
         )}
       </div>
@@ -149,14 +133,16 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
   const router = useRouter();
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
-        delay: 500, // Creștem la 500ms pentru a permite scroll-ul natural
-        tolerance: 10, // Toleranță mai mare pentru a nu anula drag-ul la mișcări mici
+        distance: 10,
       },
     }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 300, // Timp mediu, echilibrat
+        tolerance: 8,
+      },
     })
   );
 
@@ -165,31 +151,21 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
   }, [initialResources]);
 
   const handleDelete = async (publicId: string) => {
-    if (confirm('Sigur vrei să ștergi această amintire?')) {
+    if (confirm('Ștergi această amintire?')) {
       const res = await deleteMediaAction(publicId);
-      if (res.success) {
-        setItems(items.filter(item => item.public_id !== publicId));
-      }
+      if (res.success) setItems(items.filter(item => item.public_id !== publicId));
     }
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-
     if (over && active.id !== over.id) {
       const oldIndex = items.findIndex((item) => item.public_id === active.id);
       const newIndex = items.findIndex((item) => item.public_id === over.id);
-      
       const newItems = arrayMove(items, oldIndex, newIndex);
       setItems(newItems);
       setIsUpdating(true);
-      
-      const orderData = newItems.map((item, index) => ({
-        public_id: item.public_id,
-        order: index
-      }));
-
-      await updateOrderAction(orderData);
+      await updateOrderAction(newItems.map((item, index) => ({ public_id: item.public_id, order: index })));
       setIsUpdating(false);
       router.refresh();
     }
@@ -199,64 +175,32 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
     try {
       const response = await fetch(url);
       const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = blobUrl;
+      link.href = window.URL.createObjectURL(blob);
       link.download = filename;
-      document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
-    } catch (error) {
+    } catch {
       window.open(url, '_blank');
     }
   };
 
-  if (items.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 text-center">
-        <p className="text-accent font-serif text-xl italic">Galeria este goală.</p>
-        <p className="text-accent/50 text-sm mt-2">Încarcă ceva frumos pentru a începe.</p>
-      </div>
-    );
-  }
+  if (items.length === 0) return <div className="py-24 text-center opacity-40 italic">Galeria este goală.</div>;
 
   return (
     <div className="relative">
       {selectedImage && (
-        <div 
-          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4"
-          onClick={() => setSelectedImage(null)}
-        >
-          <img src={selectedImage} className="max-w-full max-h-full object-contain shadow-2xl" alt="Full" />
+        <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setSelectedImage(null)}>
+          <img src={selectedImage} className="max-w-full max-h-full object-contain" alt="Full" />
         </div>
       )}
 
-      {isUpdating && (
-        <div className="fixed top-4 right-4 z-50 bg-white/5 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-[10px] uppercase tracking-widest">
-          se salvează...
-        </div>
-      )}
+      {isUpdating && <div className="fixed top-4 right-4 z-50 bg-white/5 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-[10px] uppercase tracking-widest opacity-60">salvare...</div>}
 
-      <DndContext 
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext 
-          items={items.map(i => i.public_id)}
-          strategy={rectSortingStrategy}
-        >
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 auto-rows-[150px] sm:auto-rows-[200px]">
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={items.map(i => i.public_id)} strategy={rectSortingStrategy}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 auto-rows-[160px] sm:auto-rows-[220px] grid-flow-dense">
             {items.map((resource, index) => (
-              <SortableItem 
-                key={resource.public_id} 
-                resource={resource} 
-                index={index}
-                onDelete={handleDelete}
-                onDownload={handleDownload}
-                onSelect={setSelectedImage}
-              />
+              <SortableItem key={resource.public_id} resource={resource} index={index} onDelete={handleDelete} onDownload={handleDownload} onSelect={setSelectedImage} />
             ))}
           </div>
         </SortableContext>
