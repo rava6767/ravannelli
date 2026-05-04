@@ -24,10 +24,11 @@ export default function Gallery({ resources }: GalleryProps) {
       {resources.map((resource, index) => (
         <motion.div
           key={resource.public_id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: index * 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}
-          className="masonry-item group relative overflow-hidden rounded-lg bg-neutral-900 border border-neutral-800"
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.2, delay: (index % 4) * 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}
+          className="masonry-item group relative overflow-hidden rounded-sm bg-neutral-900/50"
         >
           {resource.resource_type === 'image' ? (
             <CldImage
@@ -35,8 +36,8 @@ export default function Gallery({ resources }: GalleryProps) {
               height={resource.height}
               src={resource.public_id}
               alt="Gallery Image"
-              className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="w-full h-auto object-cover transition-all duration-1000 grayscale-[0.3] group-hover:grayscale-0 group-hover:scale-[1.02]"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           ) : (
             <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden">

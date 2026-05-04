@@ -8,30 +8,24 @@ export default async function Home() {
   const resources = await getResources();
 
   return (
-    <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-12 md:py-24 space-y-16">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-        <div className="space-y-4">
-          <h1 className="text-4xl md:text-6xl font-serif tracking-tight">
-            Memories <span className="text-accent italic">&</span> Moments
-          </h1>
-          <p className="text-accent/60 font-sans max-w-md">
-            A quiet space to preserve and share visual artifacts. 
-            No accounts, just memories.
-          </p>
-        </div>
+    <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-8 md:py-16 space-y-12">
+      <header className="flex items-center justify-between border-b border-white/5 pb-6">
+        <h1 className="text-2xl md:text-3xl font-serif tracking-widest lowercase opacity-80">
+          dariuca
+        </h1>
         
         <div className="flex items-center">
           <UploadButton />
         </div>
       </header>
 
-      <section className="pt-8">
+      <section className="pt-4">
         <Gallery resources={resources} />
       </section>
 
-      <footer className="pt-24 pb-12 text-center">
-        <p className="text-accent/30 text-xs font-sans tracking-widest uppercase">
-          Curated with elegance &bull; Private by link
+      <footer className="pt-16 pb-8 text-center">
+        <p className="text-accent/20 text-[10px] font-sans tracking-[0.3em] uppercase">
+          &bull; memories &bull;
         </p>
       </footer>
     </main>

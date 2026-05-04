@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #050505;
-  --foreground: #f0f0f0;
-  --accent: #a3a3a3;
+  --background: #080808;
+  --foreground: #e5e5e5;
+  --accent: #737373;
 }
 
 @theme inline {
@@ -23,23 +23,30 @@ body {
 
 .masonry-grid {
   display: columns;
-  column-count: 1;
-  column-gap: 1.5rem;
+  column-count: 2; /* 2 coloane pe mobil */
+  column-gap: 0.75rem;
 }
 
 @media (min-width: 640px) {
   .masonry-grid {
-    column-count: 2;
+    column-count: 3;
+    column-gap: 1.5rem;
   }
 }
 
 @media (min-width: 1024px) {
   .masonry-grid {
-    column-count: 3;
+    column-count: 4;
   }
 }
 
 .masonry-item {
   break-inside: avoid;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .masonry-item {
+    margin-bottom: 1.5rem;
+  }
 }
