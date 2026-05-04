@@ -22,12 +22,14 @@ export interface CloudinaryResource {
 
 export async function getResources() {
   try {
-    const { resources } = await cloudinary.api.resources({
-      max_results: 100,
-      resource_type: 'auto', // Fetch both images and videos
-      type: 'upload',
-    });
-    return resources as CloudinaryResource[];
+    // Using Search API for better performance and support for both images and videos
+    const result = await cloudinary.search
+      .expression('resource_type:image OR resource_type:video')
+      .sort_by('created_at', 'desc')
+      .max_results(100)
+      .execute();
+    
+    return result.resources as CloudinaryResource[];
   } catch (error) {
     console.error('Error fetching resources from Cloudinary:', error);
     return [];
