@@ -26,8 +26,7 @@ export interface CloudinaryResource {
 export async function getResources() {
   try {
     const result = await cloudinary.search
-      .expression('resource_type:image OR resource_type:video')
-      // Sortăm după contextul 'order' dacă există, altfel după data creării
+      .expression('tags:dariuca AND (resource_type:image OR resource_type:video)')
       .with_field('context')
       .max_results(100)
       .execute();

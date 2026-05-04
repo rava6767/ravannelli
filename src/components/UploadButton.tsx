@@ -17,6 +17,7 @@ export default function UploadButton() {
       options={{
         sources: ['local', 'camera'],
         multiple: true,
+        tags: ['dariuca'], // Adăugăm automat tag-ul pentru a le filtra
         styles: {
           palette: {
             window: '#050505',
