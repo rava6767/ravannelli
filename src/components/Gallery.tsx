@@ -30,11 +30,13 @@ interface GalleryProps {
 
 function SortableItem({ 
   resource, 
+  index,
   onDelete, 
   onDownload, 
   onSelect 
 }: { 
   resource: CloudinaryResource, 
+  index: number,
   onDelete: (id: string) => void,
   onDownload: (url: string, filename: string) => void,
   onSelect: (url: string) => void
@@ -52,8 +54,23 @@ function SortableItem({
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 50 : 1,
-    opacity: isDragging ? 0.8 : 1,
+    opacity: isDragging ? 0.6 : 1,
+    scale: isDragging ? 1.05 : 1,
   };
+
+  // Logică pentru un aspect "intercalat" (mosaic)
+  // Unele poze vor fi mai mari, altele mai înalte, creând un ritm vizual
+  const isLarge = index % 7 === 0; // Una din 7 poze este mare (2x2)
+  const isWide = !isLarge && resource.width > resource.height && index % 3 === 0;
+  const isTall = !isLarge && !isWide && resource.height > resource.width && index % 4 === 0;
+
+  const gridClasses = `
+    relative overflow-hidden rounded-sm bg-neutral-900/30 border border-white/[0.03] 
+    hover:border-white/10 transition-all duration-500 group
+    ${isLarge ? 'sm:col-span-2 sm:row-span-2' : ''}
+    ${isWide ? 'sm:col-span-2' : ''}
+    ${isTall ? 'sm:row-span-2' : ''}
+  `;
 
   return (
     <div
@@ -61,9 +78,7 @@ function SortableItem({
       style={style}
       {...attributes}
       {...listeners}
-      className={`relative overflow-hidden rounded-sm bg-neutral-900/30 border border-white/[0.03] hover:border-white/10 transition-colors duration-500 group touch-none ${
-        resource.width > resource.height ? 'sm:col-span-2' : ''
-      }`}
+      className={gridClasses}
     >
       {/* Action Bar - Acum apare DOAR la hover pe desktop, pe mobil e ascuns implicit */}
       <div className="absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-start justify-end p-2.5">
@@ -92,7 +107,7 @@ function SortableItem({
       </div>
 
       <div 
-        className="relative cursor-pointer aspect-[3/4] sm:aspect-auto"
+        className="relative cursor-pointer w-full h-full"
         onClick={(e) => {
           // Dacă este un click scurt (nu un drag), deschidem imaginea
           if (resource.resource_type === 'image') onSelect(resource.secure_url);
@@ -136,8 +151,8 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 250, // Trebuie să ții apăsat 250ms pentru a începe mutarea pe mobil
-        tolerance: 5, // Toleranță mică pentru mișcare înainte de activare
+        delay: 500, // Creștem la 500ms pentru a permite scroll-ul natural
+        tolerance: 10, // Toleranță mai mare pentru a nu anula drag-ul la mișcări mici
       },
     }),
     useSensor(KeyboardSensor, {
@@ -232,11 +247,12 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
           items={items.map(i => i.public_id)}
           strategy={rectSortingStrategy}
         >
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
-            {items.map((resource) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 auto-rows-[150px] sm:auto-rows-[200px]">
+            {items.map((resource, index) => (
               <SortableItem 
                 key={resource.public_id} 
                 resource={resource} 
+                index={index}
                 onDelete={handleDelete}
                 onDownload={handleDownload}
                 onSelect={setSelectedImage}
