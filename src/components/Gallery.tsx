@@ -43,6 +43,7 @@ function SortableItem({
   onDownload: (url: string, filename: string) => void,
   onSelect: (url: string) => void
 }) {
+  const [showActions, setShowActions] = useState(false);
   const {
     attributes,
     listeners,
@@ -60,12 +61,12 @@ function SortableItem({
     scale: isDragging ? 1.02 : 1,
   };
 
-  // Logică pentru un aspect "intercalat" fără a tăia pozele (Masonry-ish în Grid)
-  const isWide = resource.width > resource.height * 1.2;
-  const isTall = resource.height > resource.width * 1.2;
+  // Detectăm formatul pentru a decide mărimea celulei
+  const isWide = resource.width > resource.height * 1.3;
+  const isTall = resource.height > resource.width * 1.3;
   
   const gridClasses = `
-    relative overflow-hidden rounded-sm bg-neutral-900/20 border border-white/[0.03] 
+    relative overflow-hidden rounded-sm bg-neutral-900/10 border border-white/[0.03] 
     hover:border-white/10 transition-all duration-500 group
     ${isWide ? 'sm:col-span-2' : ''}
     ${isTall ? 'sm:row-span-2' : ''}
@@ -77,34 +78,58 @@ function SortableItem({
       style={style}
       className={gridClasses}
     >
-      {/* Drag Handle - Mai vizibil pentru feedback */}
+      {/* Drag Handle - Activează mutarea la apăsare lungă */}
       <div 
         {...attributes} 
         {...listeners}
-        className="absolute top-2 left-2 z-30 p-2 bg-black/40 rounded-full text-white/50 backdrop-blur-md border border-white/10 sm:opacity-0 group-hover:opacity-100 transition-opacity touch-none"
-      >
-        <GripVertical className="w-4 h-4" />
-      </div>
+        className="absolute inset-0 z-10 touch-none"
+      />
 
-      {/* Action Buttons */}
-      <div className="absolute top-2 right-2 z-20 flex gap-2 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* Action Buttons - Apar la click (pe mobil/desktop) sau hover (desktop) */}
+      <div className={`absolute inset-0 z-20 flex items-center justify-center gap-4 bg-black/40 backdrop-blur-[2px] transition-opacity duration-300 ${showActions || isDragging ? 'opacity-100' : 'opacity-0 sm:group-hover:opacity-100 pointer-events-none sm:pointer-events-auto'}`}>
         <button 
-          onClick={(e) => { e.stopPropagation(); onDownload(resource.secure_url, `${resource.public_id}.${resource.format}`); }}
-          className="p-2 bg-black/40 hover:bg-black/80 rounded-full text-white/70 backdrop-blur-md border border-white/10"
+          onClick={(e) => { 
+            e.stopPropagation(); 
+            onSelect(resource.secure_url);
+            setShowActions(false);
+          }}
+          className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-md border border-white/20 transition-transform active:scale-90"
         >
-          <Download className="w-3.5 h-3.5" />
+          <Maximize2 className="w-5 h-5" />
         </button>
         <button 
-          onClick={(e) => { e.stopPropagation(); onDelete(resource.public_id); }}
-          className="p-2 bg-black/40 hover:bg-red-900/60 rounded-full text-white/70 backdrop-blur-md border border-white/10"
+          onClick={(e) => { 
+            e.stopPropagation(); 
+            onDownload(resource.secure_url, `${resource.public_id}.${resource.format}`);
+            setShowActions(false);
+          }}
+          className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-md border border-white/20 transition-transform active:scale-90"
         >
-          <X className="w-3.5 h-3.5" />
+          <Download className="w-5 h-5" />
+        </button>
+        <button 
+          onClick={(e) => { 
+            e.stopPropagation(); 
+            onDelete(resource.public_id);
+            setShowActions(false);
+          }}
+          className="p-3 bg-red-500/20 hover:bg-red-500/40 rounded-full text-white backdrop-blur-md border border-red-500/20 transition-transform active:scale-90"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        
+        {/* Buton pentru a închide meniul pe mobil */}
+        <button 
+          onClick={(e) => { e.stopPropagation(); setShowActions(false); }}
+          className="absolute top-2 right-2 p-1 text-white/50 sm:hidden"
+        >
+          <X className="w-4 h-4" />
         </button>
       </div>
 
       <div 
-        className="relative cursor-pointer w-full h-full"
-        onClick={() => resource.resource_type === 'image' && onSelect(resource.secure_url)}
+        className="relative w-full h-full"
+        onClick={() => setShowActions(!showActions)}
       >
         {resource.resource_type === 'image' ? (
           <CldImage
@@ -112,13 +137,13 @@ function SortableItem({
             height={resource.height}
             src={resource.public_id}
             alt="Gallery"
-            className="w-full h-full object-cover grayscale-[0.1] group-hover:grayscale-0 transition-all duration-700"
+            className="w-full h-full object-contain bg-neutral-900/50 transition-all duration-700"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
           <div className="relative w-full h-full bg-black/40 flex items-center justify-center overflow-hidden">
-             <video src={resource.secure_url} className="w-full h-full object-cover" muted loop onMouseOver={(e) => e.currentTarget.play()} onMouseOut={(e) => e.currentTarget.pause()} />
-             <Play className="absolute w-5 h-5 text-white/50 fill-current" />
+             <video src={resource.secure_url} className="w-full h-full object-contain" muted loop onMouseOver={(e) => e.currentTarget.play()} onMouseOut={(e) => e.currentTarget.pause()} />
+             <Play className="absolute w-6 h-6 text-white/50 fill-current" />
           </div>
         )}
       </div>
