@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #050505;
+  --background: #0e0e0e;
   --foreground: #f0f0f0;
   --accent: #a3a3a3;
 }
@@ -20,34 +20,45 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   margin: 0;
+  padding: 0;
 }
 
-.columns-2 {
+/* Custom Masonry Grid with explicit gaps */
+.aesthetic-masonry {
   column-count: 2;
-  column-gap: 0.75rem;
+  column-gap: 16px;
+  width: 100%;
 }
 
 @media (min-width: 640px) {
-  .sm\:columns-3 {
+  .aesthetic-masonry {
     column-count: 3;
-    column-gap: 1.25rem;
+    column-gap: 24px;
   }
 }
 
 @media (min-width: 1024px) {
-  .lg\:columns-4 {
+  .aesthetic-masonry {
     column-count: 4;
-    column-gap: 1.5rem;
+    column-gap: 32px;
   }
 }
 
-.masonry-item-container {
+.masonry-item-card {
   break-inside: avoid;
-  margin-bottom: 0.75rem;
+  margin-bottom: 16px;
+  display: block;
+  width: 100%;
 }
 
 @media (min-width: 640px) {
-  .masonry-item-container {
-    margin-bottom: 1.25rem;
+  .masonry-item-card {
+    margin-bottom: 24px;
   }
+}
+
+/* Ensure images respect rounded corners */
+.rounded-corners {
+  border-radius: 12px;
+  overflow: hidden;
 }

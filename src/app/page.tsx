@@ -10,9 +10,12 @@ export default async function Home() {
   return (
     <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-8 md:py-16 space-y-12">
       <header className="flex items-center justify-between border-b border-white/5 pb-6">
-        <h1 className="text-2xl md:text-3xl font-serif tracking-widest lowercase opacity-80">
-          dariuca
-        </h1>
+        <div className="flex items-center gap-3">
+          <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+          <h1 className="text-2xl md:text-3xl font-serif tracking-widest lowercase opacity-80">
+            dariuca
+          </h1>
+        </div>
         
         <div className="flex items-center">
           <UploadButton />

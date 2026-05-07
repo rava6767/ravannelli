@@ -15,7 +15,6 @@ import {
   DragEndEvent,
   DragStartEvent,
   DragOverlay,
-  defaultDropAnimationSideEffects,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -25,6 +24,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useRouter } from 'next/navigation';
 
 interface GalleryProps {
   resources: CloudinaryResource[];
@@ -64,30 +64,30 @@ function SortableItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="masonry-item-container relative w-full group overflow-hidden rounded-lg shadow-sm border border-white/[0.03]"
+      className="masonry-item-card relative w-full group"
     >
       {/* Menu Overlay - Triggered by Click */}
       {showActions && (
         <div 
-          className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-6 bg-black/80 backdrop-blur-md rounded-lg"
+          className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-6 bg-black/80 backdrop-blur-md rounded-xl"
           onClick={(e) => { e.stopPropagation(); setShowActions(false); }}
         >
           <div className="flex gap-4">
             <button 
               onClick={(e) => { e.stopPropagation(); onSelect(resource.secure_url); setShowActions(false); }}
-              className="p-4 bg-white/10 hover:bg-white/20 rounded-full text-white border border-white/20 active:scale-90 transition-all"
+              className="p-4 bg-white/10 hover:bg-white/20 rounded-full text-white border border-white/20 active:scale-95 transition-all"
             >
               <Maximize2 className="w-6 h-6" />
             </button>
             <button 
               onClick={(e) => { e.stopPropagation(); onDownload(resource.secure_url, `${resource.public_id}.${resource.format}`); setShowActions(false); }}
-              className="p-4 bg-white/10 hover:bg-white/20 rounded-full text-white border border-white/20 active:scale-90 transition-all"
+              className="p-4 bg-white/10 hover:bg-white/20 rounded-full text-white border border-white/20 active:scale-95 transition-all"
             >
               <Download className="w-6 h-6" />
             </button>
             <button 
               onClick={(e) => { e.stopPropagation(); onDelete(resource.public_id); setShowActions(false); }}
-              className="p-4 bg-red-500/20 hover:bg-red-500/40 rounded-full text-white border border-red-500/20 active:scale-90 transition-all"
+              className="p-4 bg-red-500/20 rounded-full text-white border border-red-500/20 active:scale-95 transition-all"
             >
               <X className="w-6 h-6" />
             </button>
@@ -96,12 +96,12 @@ function SortableItem({
           <div 
             {...attributes} 
             {...listeners}
-            className="px-8 py-3 bg-white/20 rounded-full text-[11px] uppercase tracking-[0.3em] text-white border border-white/30 cursor-grab active:cursor-grabbing touch-none flex items-center gap-3 transition-colors hover:bg-white/30"
+            className="px-8 py-3 bg-white/15 rounded-full text-[11px] uppercase tracking-[0.35em] text-white/90 border border-white/30 cursor-grab active:cursor-grabbing touch-none flex items-center gap-3 transition-colors hover:bg-white/25"
             onClick={(e) => e.stopPropagation()}
           >
             <Move className="w-4 h-4" /> Move
           </div>
-
+          
           <div className="absolute bottom-6 text-[10px] text-white/30 font-sans tracking-widest uppercase">
             {new Date(resource.created_at).toLocaleDateString('ro-RO')}
           </div>
@@ -109,7 +109,7 @@ function SortableItem({
       )}
 
       <div 
-        className="relative cursor-pointer w-full overflow-hidden rounded-lg"
+        className="relative cursor-pointer w-full rounded-corners shadow-lg"
         onClick={() => setShowActions(true)}
       >
         {resource.resource_type === 'image' ? (
@@ -118,19 +118,19 @@ function SortableItem({
             height={resource.height}
             src={resource.public_id}
             alt="Gallery"
-            className="w-full h-auto block transition-transform duration-1000 group-hover:scale-105"
+            className="w-full h-auto block transition-all duration-1000 group-hover:scale-[1.03]"
             sizes="(max-width: 640px) 50vw, 33vw"
           />
         ) : (
-          <div className="relative w-full aspect-video bg-neutral-900 flex items-center justify-center">
+          <div className="relative w-full aspect-video bg-neutral-900 flex items-center justify-center rounded-corners">
             <video 
               src={resource.secure_url} 
-              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" 
+              className="w-full h-full object-cover" 
               muted 
               loop 
               playsInline
             />
-            <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-transparent transition-colors">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/10">
               <Play className="w-10 h-10 text-white/30 fill-current" />
             </div>
           </div>
@@ -210,7 +210,7 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={items.map(i => i.public_id)} strategy={rectSortingStrategy}>
-          <div className="columns-2 sm:columns-3 lg:columns-4">
+          <div className="aesthetic-masonry">
             {items.map((resource) => (
               <SortableItem 
                 key={resource.public_id} 
@@ -224,7 +224,7 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
         </SortableContext>
         <DragOverlay adjustScale={true}>
           {activeId ? (
-            <div className="opacity-80 scale-105 rounded-sm overflow-hidden border border-white/20">
+            <div className="opacity-80 scale-105 rounded-lg overflow-hidden border border-white/20 shadow-2xl">
               <CldImage
                 width={400}
                 height={400}
