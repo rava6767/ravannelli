@@ -27,6 +27,9 @@ export default async function Home() {
         <p className="text-accent/10 text-[9px] font-sans tracking-[0.5em] uppercase">
           &bull; purtată mereu cu tine &bull;
         </p>
+        <p className="text-accent/5 text-[8px] uppercase tracking-widest">
+          v3.0 live
+        </p>
         <div className="flex justify-center opacity-5">
            <div className="w-8 h-[1px] bg-accent" />
         </div>

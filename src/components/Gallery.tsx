@@ -25,7 +25,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useRouter } from 'next/navigation';
-import { motion, useScroll, useSpring } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface GalleryProps {
   resources: CloudinaryResource[];
@@ -63,19 +63,16 @@ function SortableItem({
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (navigator.share) {
+    if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
-          title: 'Dariuca Gallery',
-          text: 'Check out this memory',
+          title: 'dariuca',
           url: resource.secure_url,
         });
-      } catch (err) {
-        console.log('Error sharing:', err);
-      }
-    } else {
+      } catch (err) {}
+    } else if (typeof navigator !== 'undefined') {
       navigator.clipboard.writeText(resource.secure_url);
-      alert('Link copiat în clipboard!');
+      alert('Link copiat!');
     }
   };
 
@@ -90,69 +87,25 @@ function SortableItem({
           className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-6 bg-black/80 backdrop-blur-md rounded-xl"
           onClick={(e) => { e.stopPropagation(); setShowActions(false); }}
         >
-          <div className="flex flex-wrap justify-center gap-4 px-4">
-            <button 
-              onClick={(e) => { e.stopPropagation(); onSelect(resource.secure_url); setShowActions(false); }}
-              className="p-4 bg-white/10 hover:bg-white/20 rounded-full text-white border border-white/20 active:scale-95 transition-all"
-            >
-              <Maximize2 className="w-5 h-5" />
-            </button>
-            <button 
-              onClick={handleShare}
-              className="p-4 bg-white/10 hover:bg-white/20 rounded-full text-white border border-white/20 active:scale-95 transition-all"
-            >
-              <Share2 className="w-5 h-5" />
-            </button>
-            <button 
-              onClick={(e) => { e.stopPropagation(); onDownload(resource.secure_url, `${resource.public_id}.${resource.format}`); setShowActions(false); }}
-              className="p-4 bg-white/10 hover:bg-white/20 rounded-full text-white border border-white/20 active:scale-95 transition-all"
-            >
-              <Download className="w-5 h-5" />
-            </button>
-            <button 
-              onClick={(e) => { e.stopPropagation(); onDelete(resource.public_id); setShowActions(false); }}
-              className="p-4 bg-red-500/20 hover:bg-red-500/40 rounded-full text-white border border-red-500/20 active:scale-95 transition-all"
-            >
-              <X className="w-5 h-5" />
-            </button>
+          <div className="flex gap-3">
+            <button onClick={(e) => { e.stopPropagation(); onSelect(resource.secure_url); setShowActions(false); }} className="p-4 bg-white/10 rounded-full text-white border border-white/20 active:scale-95"><Maximize2 className="w-5 h-5" /></button>
+            <button onClick={handleShare} className="p-4 bg-white/10 rounded-full text-white border border-white/20 active:scale-95"><Share2 className="w-5 h-5" /></button>
+            <button onClick={(e) => { e.stopPropagation(); onDownload(resource.secure_url, `${resource.public_id}.${resource.format}`); setShowActions(false); }} className="p-4 bg-white/10 rounded-full text-white border border-white/20 active:scale-95"><Download className="w-5 h-5" /></button>
+            <button onClick={(e) => { e.stopPropagation(); onDelete(resource.public_id); setShowActions(false); }} className="p-4 bg-red-500/20 rounded-full text-white border border-red-500/20 active:scale-95"><X className="w-5 h-5" /></button>
           </div>
-          
-          <div 
-            {...attributes} 
-            {...listeners}
-            className="mt-2 px-8 py-3 bg-white/15 rounded-full text-[11px] uppercase tracking-[0.35em] text-white/90 border border-white/30 cursor-grab active:cursor-grabbing touch-none flex items-center gap-3 transition-colors hover:bg-white/25"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div {...attributes} {...listeners} className="px-8 py-3 bg-white/15 rounded-full text-[10px] uppercase tracking-[0.3em] text-white/80 border border-white/30 touch-none flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             <Move className="w-4 h-4" /> Move
           </div>
         </div>
       )}
 
-      <div 
-        className="relative cursor-pointer w-full rounded-corners shadow-lg"
-        onClick={() => setShowActions(true)}
-      >
+      <div className="relative cursor-pointer w-full rounded-corners shadow-lg overflow-hidden" onClick={() => setShowActions(true)}>
         {resource.resource_type === 'image' ? (
-          <CldImage
-            width={resource.width}
-            height={resource.height}
-            src={resource.public_id}
-            alt="Gallery"
-            className="w-full h-auto block transition-all duration-1000 group-hover:scale-[1.03]"
-            sizes="(max-width: 640px) 50vw, 33vw"
-          />
+          <CldImage width={resource.width} height={resource.height} src={resource.public_id} alt="Gallery" className="w-full h-auto block" sizes="(max-width: 640px) 50vw, 33vw" />
         ) : (
-          <div className="relative w-full aspect-video bg-neutral-900 flex items-center justify-center rounded-corners">
-            <video 
-              src={resource.secure_url} 
-              className="w-full h-full object-cover" 
-              muted 
-              loop 
-              playsInline
-            />
-            <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-              <Play className="w-10 h-10 text-white/30 fill-current" />
-            </div>
+          <div className="relative w-full aspect-video bg-neutral-900 flex items-center justify-center">
+            <video src={resource.secure_url} className="w-full h-full object-cover" muted loop playsInline />
+            <Play className="absolute w-10 h-10 text-white/30 fill-current" />
           </div>
         )}
       </div>
@@ -164,18 +117,10 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
   const [items, setItems] = useState(initialResources);
   const [activeId, setActiveId] = useState<string | null>(null);
   const router = useRouter();
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
   useEffect(() => {
@@ -189,22 +134,20 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
-
     if (over && active.id !== over.id) {
       const oldIndex = items.findIndex((item) => item.public_id === active.id);
       const newIndex = items.findIndex((item) => item.public_id === over.id);
       const newItems = arrayMove(items, oldIndex, newIndex);
       setItems(newItems);
       await updateOrderAction(newItems.map((item, index) => ({ public_id: item.public_id, order: index })));
+      router.refresh();
     }
   };
 
   const handleDelete = async (publicId: string) => {
-    if (confirm('Delete this memory?')) {
+    if (confirm('Ștergi amintirea?')) {
       const res = await deleteMediaAction(publicId);
-      if (res.success) {
-        setItems(items.filter(item => item.public_id !== publicId));
-      }
+      if (res.success) setItems(items.filter(item => item.public_id !== publicId));
     }
   };
 
@@ -216,54 +159,29 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
       link.href = window.URL.createObjectURL(blob);
       link.download = filename;
       link.click();
-    } catch {
-      window.open(url, '_blank');
-    }
+    } catch { window.open(url, '_blank'); }
   };
 
-  if (items.length === 0) return <div className="py-24 text-center opacity-40">Gallery is empty.</div>;
+  if (items.length === 0) return <div className="py-24 text-center opacity-40 italic">galeria este goală.</div>;
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 1.5, ease: "easeOut" }}
-      className="relative w-full px-2 sm:px-0"
-    >
-      <motion.div className="scroll-progress" style={{ scaleX }} />
-      <DndContext 
-        sensors={sensors} 
-        collisionDetection={closestCenter} 
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
+    <div className="relative w-full">
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <SortableContext items={items.map(i => i.public_id)} strategy={rectSortingStrategy}>
           <div className="aesthetic-masonry">
             {items.map((resource) => (
-              <SortableItem 
-                key={resource.public_id} 
-                resource={resource} 
-                onDelete={handleDelete} 
-                onDownload={handleDownload} 
-                onSelect={(url) => window.open(url, '_blank')} 
-              />
+              <SortableItem key={resource.public_id} resource={resource} onDelete={handleDelete} onDownload={handleDownload} onSelect={(url) => window.open(url, '_blank')} />
             ))}
           </div>
         </SortableContext>
         <DragOverlay adjustScale={true}>
           {activeId ? (
             <div className="opacity-80 scale-105 rounded-lg overflow-hidden border border-white/20 shadow-2xl">
-              <CldImage
-                width={400}
-                height={400}
-                src={activeId}
-                alt="Dragging"
-                className="w-full h-auto"
-              />
+              <CldImage width={400} height={400} src={activeId} alt="Dragging" className="w-full h-auto" />
             </div>
           ) : null}
         </DragOverlay>
       </DndContext>
-    </motion.div>
+    </div>
   );
 }
