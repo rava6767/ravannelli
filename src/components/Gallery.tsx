@@ -13,7 +13,6 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-  DragStartEvent,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -23,7 +22,6 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { motion, useScroll, useSpring } from 'framer-motion';
 
 interface GalleryProps {
   resources: CloudinaryResource[];
@@ -42,6 +40,7 @@ function SortableItem({
 }) {
   const [showActions, setShowActions] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  
   const {
     attributes,
     listeners,
@@ -51,13 +50,14 @@ function SortableItem({
     isDragging
   } = useSortable({ 
     id: resource.public_id,
+    disabled: !showActions // Mutarea merge DOAR când meniul e deschis
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 50 : 1,
-    opacity: isDragging ? 0.6 : 1,
+    opacity: isDragging ? 0.4 : 1,
   };
 
   useEffect(() => {
@@ -77,45 +77,47 @@ function SortableItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="masonry-item relative group mb-3 sm:mb-6"
+      className="masonry-item"
     >
-      {/* Menu Overlay */}
+      {/* Menu Overlay - Apare la click */}
       <div 
-        className={`absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm transition-all duration-300 rounded-sm ${showActions ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`absolute inset-0 z-30 flex flex-col items-center justify-center gap-6 bg-black/60 backdrop-blur-md transition-all duration-300 ${showActions ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={(e) => { e.stopPropagation(); setShowActions(false); }}
       >
-        <div className="flex gap-4">
+        <div className="flex gap-6">
           <button 
             onClick={(e) => { e.stopPropagation(); onSelect(resource.secure_url); setShowActions(false); }}
-            className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white border border-white/20"
+            className="p-4 bg-white/10 rounded-full text-white border border-white/20 active:scale-90 transition-transform"
           >
-            <Maximize2 className="w-5 h-5" />
+            <Maximize2 className="w-6 h-6" />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); onDownload(resource.secure_url, `${resource.public_id}.${resource.format}`); setShowActions(false); }}
-            className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white border border-white/20"
+            className="p-4 bg-white/10 rounded-full text-white border border-white/20 active:scale-90 transition-transform"
           >
-            <Download className="w-5 h-5" />
+            <Download className="w-6 h-6" />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); onDelete(resource.public_id); setShowActions(false); }}
-            className="p-3 bg-red-500/20 hover:bg-red-500/40 rounded-full text-white border border-red-500/20"
+            className="p-4 bg-red-500/20 rounded-full text-white border border-red-500/20 active:scale-90 transition-transform"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
         </div>
         
+        {/* Handlerul de mutare - singura zonă de unde poți trage */}
         <div 
           {...attributes} 
           {...listeners}
-          className="mt-2 px-6 py-2 bg-white/10 rounded-full text-[10px] uppercase tracking-[0.2em] text-white/70 border border-white/10 cursor-grab active:cursor-grabbing touch-none flex items-center gap-2"
+          className="px-8 py-3 bg-white/20 rounded-full text-[11px] uppercase tracking-[0.3em] text-white border border-white/30 cursor-grab active:cursor-grabbing touch-none flex items-center gap-3"
+          onClick={(e) => e.stopPropagation()}
         >
-          <Move className="w-3 h-3" /> Mută
+          <Move className="w-4 h-4" /> Trage pentru a muta
         </div>
       </div>
 
       <div 
-        className="relative cursor-pointer overflow-hidden rounded-sm"
+        className="relative cursor-pointer w-full h-full"
         onClick={() => setShowActions(true)}
       >
         {resource.resource_type === 'image' ? (
@@ -124,21 +126,21 @@ function SortableItem({
             height={resource.height}
             src={resource.public_id}
             alt="Gallery"
-            className="w-full h-auto block transition-transform duration-700 group-hover:scale-[1.02]"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="w-full h-auto block"
+            sizes="(max-width: 640px) 50vw, 33vw"
           />
         ) : (
-          <div className="relative w-full aspect-video bg-neutral-900 flex items-center justify-center">
+          <div className="relative w-full bg-neutral-900 flex items-center justify-center overflow-hidden">
              <video 
               ref={videoRef}
               src={resource.secure_url} 
-              className="w-full h-full object-cover" 
+              className="w-full h-auto block" 
               muted 
               loop 
               playsInline
             />
-             <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-               <Play className="w-8 h-8 text-white/40 fill-current" />
+             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+               <Play className="w-10 h-10 text-white/40 fill-current" />
              </div>
           </div>
         )}
@@ -149,20 +151,9 @@ function SortableItem({
 
 export default function Gallery({ resources: initialResources }: GalleryProps) {
   const [items, setItems] = useState(initialResources);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
-
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        delay: 500,
-        tolerance: 10,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
   useEffect(() => {
@@ -176,13 +167,8 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
     }
   };
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
-
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    setActiveId(null);
     if (over && active.id !== over.id) {
       const oldIndex = items.findIndex((item) => item.public_id === active.id);
       const newIndex = items.findIndex((item) => item.public_id === over.id);
@@ -200,24 +186,14 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
       link.href = window.URL.createObjectURL(blob);
       link.download = filename;
       link.click();
-    } catch {
-      window.open(url, '_blank');
-    }
+    } catch { window.open(url, '_blank'); }
   };
 
-  if (items.length === 0) return <div className="py-24 text-center opacity-40 italic">Galeria este goală.</div>;
+  if (items.length === 0) return <div className="py-24 text-center opacity-40 italic font-serif lowercase">spațiu gol</div>;
 
   return (
     <div className="relative">
-      <motion.div className="scroll-progress" style={{ scaleX }} />
-      
-      {activeId && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 text-[9px] uppercase tracking-[0.3em] text-white/40">
-          se salvează ordinea...
-        </div>
-      )}
-
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={items.map(i => i.public_id)} strategy={verticalListSortingStrategy}>
           <div className="masonry-grid">
             {items.map((resource) => (
