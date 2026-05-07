@@ -4,7 +4,7 @@ import { CloudinaryResource } from '@/lib/cloudinary';
 import { CldImage } from 'next-cloudinary';
 import { Play, X, Download, Maximize2, Move, Share2 } from 'lucide-react';
 import { deleteMediaAction, updateOrderAction } from '@/app/actions';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -25,6 +25,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useRouter } from 'next/navigation';
+import { motion, useScroll, useSpring } from 'framer-motion';
 
 interface GalleryProps {
   resources: CloudinaryResource[];
@@ -73,7 +74,6 @@ function SortableItem({
         console.log('Error sharing:', err);
       }
     } else {
-      // Fallback: Copy to clipboard
       navigator.clipboard.writeText(resource.secure_url);
       alert('Link copiat în clipboard!');
     }
@@ -85,7 +85,6 @@ function SortableItem({
       style={style}
       className="masonry-item-card relative w-full group"
     >
-      {/* Menu Overlay - Triggered by Click */}
       {showActions && (
         <div 
           className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-6 bg-black/80 backdrop-blur-md rounded-xl"
@@ -165,6 +164,8 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
   const [items, setItems] = useState(initialResources);
   const [activeId, setActiveId] = useState<string | null>(null);
   const router = useRouter();
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -229,6 +230,7 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
       transition={{ duration: 1.5, ease: "easeOut" }}
       className="relative w-full px-2 sm:px-0"
     >
+      <motion.div className="scroll-progress" style={{ scaleX }} />
       <DndContext 
         sensors={sensors} 
         collisionDetection={closestCenter} 
