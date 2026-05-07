@@ -21,6 +21,21 @@ body {
   -moz-osx-font-smoothing: grayscale;
   margin: 0;
   padding: 0;
+  position: relative;
+}
+
+/* Film Grain Overlay */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 50;
+  background-image: url("https://res.cloudinary.com/dzf9rq9as/image/upload/v1691500000/noise_filter_v6.png");
 }
 
 /* Custom Masonry Grid with explicit gaps */

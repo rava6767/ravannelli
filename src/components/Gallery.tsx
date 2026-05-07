@@ -2,7 +2,7 @@
 
 import { CloudinaryResource } from '@/lib/cloudinary';
 import { CldImage } from 'next-cloudinary';
-import { Play, X, Download, Maximize2, Move } from 'lucide-react';
+import { Play, X, Download, Maximize2, Move, Share2 } from 'lucide-react';
 import { deleteMediaAction, updateOrderAction } from '@/app/actions';
 import { useState, useEffect, useRef } from 'react';
 import {
@@ -60,6 +60,25 @@ function SortableItem({
     opacity: isDragging ? 0.3 : 1,
   };
 
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Dariuca Gallery',
+          text: 'Check out this memory',
+          url: resource.secure_url,
+        });
+      } catch (err) {
+        console.log('Error sharing:', err);
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      navigator.clipboard.writeText(resource.secure_url);
+      alert('Link copiat în clipboard!');
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -72,38 +91,40 @@ function SortableItem({
           className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-6 bg-black/80 backdrop-blur-md rounded-xl"
           onClick={(e) => { e.stopPropagation(); setShowActions(false); }}
         >
-          <div className="flex gap-4">
+          <div className="flex flex-wrap justify-center gap-4 px-4">
             <button 
               onClick={(e) => { e.stopPropagation(); onSelect(resource.secure_url); setShowActions(false); }}
               className="p-4 bg-white/10 hover:bg-white/20 rounded-full text-white border border-white/20 active:scale-95 transition-all"
             >
-              <Maximize2 className="w-6 h-6" />
+              <Maximize2 className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={handleShare}
+              className="p-4 bg-white/10 hover:bg-white/20 rounded-full text-white border border-white/20 active:scale-95 transition-all"
+            >
+              <Share2 className="w-5 h-5" />
             </button>
             <button 
               onClick={(e) => { e.stopPropagation(); onDownload(resource.secure_url, `${resource.public_id}.${resource.format}`); setShowActions(false); }}
               className="p-4 bg-white/10 hover:bg-white/20 rounded-full text-white border border-white/20 active:scale-95 transition-all"
             >
-              <Download className="w-6 h-6" />
+              <Download className="w-5 h-5" />
             </button>
             <button 
               onClick={(e) => { e.stopPropagation(); onDelete(resource.public_id); setShowActions(false); }}
-              className="p-4 bg-red-500/20 rounded-full text-white border border-red-500/20 active:scale-95 transition-all"
+              className="p-4 bg-red-500/20 hover:bg-red-500/40 rounded-full text-white border border-red-500/20 active:scale-95 transition-all"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
           </div>
           
           <div 
             {...attributes} 
             {...listeners}
-            className="px-8 py-3 bg-white/15 rounded-full text-[11px] uppercase tracking-[0.35em] text-white/90 border border-white/30 cursor-grab active:cursor-grabbing touch-none flex items-center gap-3 transition-colors hover:bg-white/25"
+            className="mt-2 px-8 py-3 bg-white/15 rounded-full text-[11px] uppercase tracking-[0.35em] text-white/90 border border-white/30 cursor-grab active:cursor-grabbing touch-none flex items-center gap-3 transition-colors hover:bg-white/25"
             onClick={(e) => e.stopPropagation()}
           >
             <Move className="w-4 h-4" /> Move
-          </div>
-          
-          <div className="absolute bottom-6 text-[10px] text-white/30 font-sans tracking-widest uppercase">
-            {new Date(resource.created_at).toLocaleDateString('ro-RO')}
           </div>
         </div>
       )}
@@ -202,7 +223,12 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
   if (items.length === 0) return <div className="py-24 text-center opacity-40">Gallery is empty.</div>;
 
   return (
-    <div className="relative w-full px-2 sm:px-0">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1.5, ease: "easeOut" }}
+      className="relative w-full px-2 sm:px-0"
+    >
       <DndContext 
         sensors={sensors} 
         collisionDetection={closestCenter} 
@@ -236,6 +262,6 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
           ) : null}
         </DragOverlay>
       </DndContext>
-    </div>
+    </motion.div>
   );
 }
