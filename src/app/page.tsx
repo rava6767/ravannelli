@@ -25,10 +25,7 @@ export default async function Home() {
 
       <footer className="pt-24 pb-12 text-center flex flex-col gap-4">
         <p className="text-accent/10 text-[9px] font-sans tracking-[0.5em] uppercase">
-          &bull; purtată mereu cu tine &bull;
-        </p>
-        <p className="text-accent/5 text-[8px] uppercase tracking-widest">
-          v4.0 Final Stable
+          &bull; bam bam &bull;
         </p>
         <div className="flex justify-center opacity-5">
            <div className="w-8 h-[1px] bg-accent" />
