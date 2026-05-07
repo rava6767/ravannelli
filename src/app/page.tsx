@@ -23,9 +23,12 @@ export default async function Home() {
         <Gallery resources={resources} />
       </section>
 
-      <footer className="pt-16 pb-8 text-center">
+      <footer className="pt-16 pb-8 text-center flex flex-col gap-2">
         <p className="text-accent/20 text-[10px] font-sans tracking-[0.3em] uppercase">
           &bull; memories &bull;
+        </p>
+        <p className="text-accent/5 text-[8px] uppercase tracking-widest">
+          v2.1 updated just now
         </p>
       </footer>
     </main>
