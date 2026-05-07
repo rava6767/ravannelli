@@ -14,14 +14,12 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-  TouchSensor,
-  MouseSensor,
 } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  rectSortingStrategy,
+  verticalListSortingStrategy,
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -32,13 +30,11 @@ interface GalleryProps {
 
 function SortableItem({ 
   resource, 
-  index,
   onDelete, 
   onDownload, 
   onSelect 
 }: { 
   resource: CloudinaryResource, 
-  index: number,
   onDelete: (id: string) => void,
   onDownload: (url: string, filename: string) => void,
   onSelect: (url: string) => void
@@ -53,7 +49,7 @@ function SortableItem({
     isDragging
   } = useSortable({ 
     id: resource.public_id,
-    disabled: !showActions // Mutarea este activă doar când meniul este deschis
+    disabled: !showActions
   });
 
   const style = {
@@ -61,22 +57,17 @@ function SortableItem({
     transition,
     zIndex: isDragging ? 50 : 1,
     opacity: isDragging ? 0.6 : 1,
-    scale: isDragging ? 1.05 : 1,
   };
-
-  // Logică pentru aspect intercalat variat
-  const isWide = index % 5 === 0;
-  const isTall = index % 3 === 0 && !isWide;
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative group transition-all duration-500 ${isWide ? 'sm:col-span-2' : ''} ${isTall ? 'sm:row-span-2' : ''}`}
+      className="masonry-item relative group"
     >
-      {/* Meniu Comenzi - Apare la Click */}
+      {/* Menu Overlay */}
       <div 
-        className={`absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-background/60 backdrop-blur-sm transition-all duration-300 rounded-sm ${showActions ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm transition-all duration-300 rounded-sm ${showActions ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={(e) => { e.stopPropagation(); setShowActions(false); }}
       >
         <div className="flex gap-4">
@@ -100,7 +91,6 @@ function SortableItem({
           </button>
         </div>
         
-        {/* Handler de mutare - apare doar în meniu */}
         <div 
           {...attributes} 
           {...listeners}
@@ -111,7 +101,7 @@ function SortableItem({
       </div>
 
       <div 
-        className="relative w-full h-full cursor-pointer overflow-hidden rounded-sm"
+        className="relative cursor-pointer overflow-hidden rounded-sm"
         onClick={() => setShowActions(true)}
       >
         {resource.resource_type === 'image' ? (
@@ -120,21 +110,21 @@ function SortableItem({
             height={resource.height}
             src={resource.public_id}
             alt="Gallery"
-            className="w-full h-auto max-h-full object-contain transition-transform duration-700 group-hover:scale-[1.02]"
+            className="w-full h-auto block transition-transform duration-700 group-hover:scale-[1.02]"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
-          <div className="relative w-full h-full flex items-center justify-center">
+          <div className="relative w-full aspect-video bg-neutral-900 flex items-center justify-center">
              <video 
               src={resource.secure_url} 
-              className="w-full h-auto max-h-full object-contain" 
+              className="w-full h-full object-cover" 
               muted 
               loop 
               onMouseOver={(e) => e.currentTarget.play()} 
               onMouseOut={(e) => e.currentTarget.pause()} 
             />
-             <div className="absolute inset-0 flex items-center justify-center">
-               <Play className="w-8 h-8 text-white/40 fill-current" />
+             <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+               <Play className="w-8 h-8 text-white/60 fill-current" />
              </div>
           </div>
         )}
@@ -207,10 +197,10 @@ export default function Gallery({ resources: initialResources }: GalleryProps) {
       {isUpdating && <div className="fixed top-4 right-4 z-50 bg-white/5 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-[10px] uppercase tracking-widest opacity-60">salvare...</div>}
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={items.map(i => i.public_id)} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 auto-rows-[160px] sm:auto-rows-[220px] grid-flow-dense">
-            {items.map((resource, index) => (
-              <SortableItem key={resource.public_id} resource={resource} index={index} onDelete={handleDelete} onDownload={handleDownload} onSelect={setSelectedImage} />
+        <SortableContext items={items.map(i => i.public_id)} strategy={verticalListSortingStrategy}>
+          <div className="masonry-grid">
+            {items.map((resource) => (
+              <SortableItem key={resource.public_id} resource={resource} onDelete={handleDelete} onDownload={handleDownload} onSelect={setSelectedImage} />
             ))}
           </div>
         </SortableContext>
