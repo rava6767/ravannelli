@@ -13,8 +13,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Aesthetic Gallery",
-  description: "A simple, elegant photo and video gallery",
+  title: "dariuca",
+  description: "A private collection of memories",
 };
 
 export default function RootLayout({

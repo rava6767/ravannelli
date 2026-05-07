@@ -48,10 +48,10 @@ export default function UploadButton() {
         return (
           <button
             onClick={() => open()}
-            className="group flex items-center gap-2 px-5 py-2 bg-transparent text-accent border border-accent/30 rounded-full transition-all hover:text-foreground hover:border-foreground active:scale-95"
+            className="group flex items-center gap-2 px-5 py-2 bg-transparent text-accent/40 border border-accent/10 rounded-full transition-all hover:text-foreground hover:border-foreground/20 active:scale-95"
           >
             <Upload className="w-3.5 h-3.5" />
-            <span className="font-sans text-sm font-light tracking-wide">Upload</span>
+            <span className="font-sans text-[11px] font-light tracking-[0.1em] uppercase">Memorie Nouă</span>
           </button>
         );
       }}
